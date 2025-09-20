@@ -403,3 +403,30 @@ docs/_build/
 # Test files
 test_files/
 sample_files/
+
+# PDF files and documents
+*.pdf
+*.doc
+*.docx
+*.txt
+
+# FAISS index files
+*.faiss
+*.pkl
+*.bin
+
+# Resume data directories
+JD-ResAIAgent/resume_data/
+JD-ResAIAgent/resumes_data/
+JD-ResAIAgent/embeddings/
+JD-ResAIAgent/pdfstructure/
+
+# Project documentation
+Project Documentation.pdf
+Theme 2 - Automated Resume Relevance Check System.pdf
+
+# Virtual environments (additional patterns)
+JD-ResAIAgent/*/venv/
+JD-ResAIAgent/*/.venv/
+JD-ResAIAgent/*/env/
+JD-ResAIAgent/*/ENV/
