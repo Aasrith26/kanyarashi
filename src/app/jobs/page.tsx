@@ -52,16 +52,16 @@ export default function JobsPage() {
     );
   }
 
-  if (!isSignedIn) {
-    router.push('/');
-    return null;
-  }
-
   useEffect(() => {
     if (isSignedIn && user) {
       fetchJobs();
     }
   }, [isSignedIn, user]);
+
+  if (!isSignedIn) {
+    router.push('/');
+    return null;
+  }
 
   const fetchJobs = async () => {
     try {

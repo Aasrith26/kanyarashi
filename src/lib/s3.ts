@@ -26,7 +26,7 @@ export async function uploadToS3(file: File, type: "resume" | "jd") {
             console.log('uploading to s3....',parseInt(((evt.loaded*100)/evt.total).toString()))
         }).promise()
 
-        await upload.then(data => {
+        await upload.then(() => {
             console.log("Uploaded Sucessfully to S3! ",key)
         })
 
@@ -39,7 +39,7 @@ export async function uploadToS3(file: File, type: "resume" | "jd") {
         console.log(error)
      }  
 }
-export function getS3Url(key : string){
-    const url = 'https://${process.env.NEXT_PUBLIC_S3_BUCKET_NAME}.s3.ap-south-1.amazonaws.com/${key}';
+export function getS3Url(_key : string){
+    const url = 'https://${process.env.NEXT_PUBLIC_S3_BUCKET_NAME}.s3.ap-south-1.amazonaws.com/${_key}';
     return url;
 }

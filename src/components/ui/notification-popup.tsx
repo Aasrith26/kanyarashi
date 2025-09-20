@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { X, CheckCircle, AlertCircle, Info, TriangleAlert } from "lucide-react";
 
@@ -47,12 +47,12 @@ const NotificationPopup: React.FC<NotificationPopupProps> = ({
     }
   }, [isOpen, duration, handleClose]);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setIsVisible(false);
     setTimeout(() => {
       onClose();
     }, 200); // Wait for animation to complete
-  };
+  }, [onClose]);
 
 
   const handleCancel = () => {
