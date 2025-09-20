@@ -74,11 +74,9 @@ const ScoreBar = ({ score, label }: { score: number; label: string }) => {
 
 const CandidateCard = ({ 
   candidate, 
-  rank, 
   onSendFeedback 
 }: { 
   candidate: Candidate; 
-  rank: number;
   onSendFeedback: (candidate: Candidate) => void;
 }) => (
   <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
@@ -231,11 +229,10 @@ const ResultsDisplay = ({
         </div>
       </div>
       
-      {results.map((candidate, index) => (
+      {results.map((candidate) => (
         <CandidateCard 
           key={candidate.resume_id} 
           candidate={candidate} 
-          rank={index + 1} 
           onSendFeedback={onSendFeedback}
         />
       ))}
@@ -285,12 +282,30 @@ function AnalysePageContent() {
       setSession(data.session);
       
       // Map backend response to frontend interface
-      const mappedResults = data.results.map((result: any) => ({
+      const mappedResults = data.results.map((result: {
+        candidate_name: string;
+        candidate_email: string;
+        candidate_phone: string;
+        resume_id: string;
+        overall_fit_score: number;
+        skill_match_score: number;
+        project_relevance_score: number;
+        problem_solving_score: number;
+        tools_score: number;
+        summary: string;
+      }) => ({
         name: result.candidate_name,
         email: result.candidate_email,
         phone: result.candidate_phone,
         resume_id: result.resume_id,
-        evaluation: result.evaluation
+        evaluation: {
+          "Overall Fit": result.overall_fit_score,
+          "Skill Match": result.skill_match_score,
+          "Project Relevance": result.project_relevance_score,
+          "Problem Solving": result.problem_solving_score,
+          "Tools": result.tools_score,
+          "Summary": result.summary
+        }
       }));
       
       // Show all results without filtering duplicates

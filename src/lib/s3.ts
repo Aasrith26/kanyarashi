@@ -39,7 +39,7 @@ export async function uploadToS3(file: File, type: "resume" | "jd") {
         console.log(error)
      }  
 }
-export function getS3Url(_key : string){
-    const url = 'https://${process.env.NEXT_PUBLIC_S3_BUCKET_NAME}.s3.ap-south-1.amazonaws.com/${_key}';
+export function getS3Url(key: string){
+    const url = `https://${process.env.NEXT_PUBLIC_S3_BUCKET_NAME}.s3.ap-south-1.amazonaws.com/${key}`;
     return url;
 }

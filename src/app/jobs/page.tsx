@@ -44,25 +44,6 @@ export default function JobsPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
-  if (!isLoaded) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-600"></div>
-      </div>
-    );
-  }
-
-  useEffect(() => {
-    if (isSignedIn && user) {
-      fetchJobs();
-    }
-  }, [isSignedIn, user]);
-
-  if (!isSignedIn) {
-    router.push('/');
-    return null;
-  }
-
   const fetchJobs = async () => {
     try {
       setIsLoading(true);
@@ -74,6 +55,25 @@ export default function JobsPage() {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (isSignedIn && user) {
+      fetchJobs();
+    }
+  }, [isSignedIn, user]);
+
+  if (!isLoaded) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-600"></div>
+      </div>
+    );
+  }
+
+  if (!isSignedIn) {
+    router.push('/');
+    return null;
+  }
 
   const filteredJobs = jobs.filter(job =>
     job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -368,13 +368,10 @@ export default function JobsPage() {
               e.preventDefault();
               const formData = new FormData(e.target as HTMLFormElement);
               const jobData = {
-                title: formData.get('title'),
-                description: formData.get('description'),
-                requirements: formData.get('requirements'),
-                location: formData.get('location'),
-                salary_range: formData.get('salary_range'),
-                employment_type: formData.get('employment_type'),
-                experience_level: formData.get('experience_level')
+                id: parseInt(selectedJob.id),
+                title: formData.get('title') as string,
+                description: formData.get('description') as string,
+                location: formData.get('location') as string
               };
               handleUpdateJob(jobData);
             }} className="space-y-4">

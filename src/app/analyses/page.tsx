@@ -42,25 +42,6 @@ export default function AnalysesPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedAnalysis, setSelectedAnalysis] = useState<AnalysisSession | null>(null);
 
-  if (!isLoaded) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-600"></div>
-      </div>
-    );
-  }
-
-  useEffect(() => {
-    if (isSignedIn && user) {
-      fetchAnalyses();
-    }
-  }, [isSignedIn, user]);
-
-  if (!isSignedIn) {
-    router.push('/');
-    return null;
-  }
-
   const fetchAnalyses = async () => {
     try {
       setIsLoading(true);
@@ -72,6 +53,25 @@ export default function AnalysesPage() {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (isSignedIn && user) {
+      fetchAnalyses();
+    }
+  }, [isSignedIn, user]);
+
+  if (!isLoaded) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-600"></div>
+      </div>
+    );
+  }
+
+  if (!isSignedIn) {
+    router.push('/');
+    return null;
+  }
 
   const getStatusIcon = (status: string) => {
     switch (status) {
