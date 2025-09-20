@@ -387,13 +387,19 @@ This is a general assessment to evaluate technical skills, experience, and overa
 def get_db_connection():
     """Get database connection"""
     try:
-        conn = psycopg2.connect(
-            host="localhost",
-            port="5432",
-            database="recur_ai_db", 
-            user="postgres",
-            password="prameela@65"
-        )
+        # Use DATABASE_URL environment variable if available, otherwise fallback to localhost
+        database_url = os.getenv("DATABASE_URL")
+        if database_url:
+            conn = psycopg2.connect(database_url)
+        else:
+            # Fallback to localhost for local development
+            conn = psycopg2.connect(
+                host="localhost",
+                port="5432",
+                database="recur_ai_db", 
+                user="postgres",
+                password="prameela@65"
+            )
         return conn
     except Exception as e:
         print(f"Database connection failed: {e}")
@@ -405,7 +411,12 @@ app = FastAPI(title="RecurAI - Resume Analysis API", version="2.0.0")
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=[
+        "http://localhost:3000", 
+        "http://127.0.0.1:3000",
+        "https://kanyarashi.vercel.app",  # Add your Vercel frontend URL
+        "https://*.vercel.app"  # Allow all Vercel preview deployments
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
