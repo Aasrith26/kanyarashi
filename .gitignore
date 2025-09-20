@@ -457,5 +457,4 @@ setup.md
 env.example
 env-template.txt
 start.bat
-start.sh
 test_all_routes.py
