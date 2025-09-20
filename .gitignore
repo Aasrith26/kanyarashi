@@ -430,3 +430,28 @@ JD-ResAIAgent/*/venv/
 JD-ResAIAgent/*/.venv/
 JD-ResAIAgent/*/env/
 JD-ResAIAgent/*/ENV/
+
+# Frontend files (for backend deployment)
+src/
+public/
+node_modules/
+package.json
+package-lock.json
+next.config.ts
+tsconfig.json
+postcss.config.mjs
+eslint.config.mjs
+components.json
+vercel.json
+next-env.d.ts
+
+# Documentation and scripts
+README.md
+DEPLOYMENT.md
+POSTMAN_TESTING_GUIDE.md
+setup.md
+env.example
+env-template.txt
+start.bat
+start.sh
+test_all_routes.py

@@ -1,0 +1,37 @@
+# Frontend files
+src/
+public/
+node_modules/
+package.json
+package-lock.json
+next.config.ts
+tsconfig.json
+postcss.config.mjs
+eslint.config.mjs
+components.json
+vercel.json
+
+# Documentation
+README.md
+DEPLOYMENT.md
+POSTMAN_TESTING_GUIDE.md
+setup.md
+env.example
+env-template.txt
+
+# Scripts
+start.bat
+start.sh
+test_all_routes.py
+
+# Database (will be handled by Railway's PostgreSQL service)
+database/
+
+# Large files and directories
+*.pdf
+*.doc
+*.docx
+*.txt
+*.faiss
+*.pkl
+*.bin
