@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { X, CheckCircle, AlertCircle, Info, AlertTriangle } from "lucide-react";
+import { X, CheckCircle, AlertCircle, Info, TriangleAlert } from "lucide-react";
 
 export interface NotificationPopupProps {
   isOpen: boolean;
@@ -75,7 +75,7 @@ const NotificationPopup: React.FC<NotificationPopupProps> = ({
       case "error":
         return <AlertCircle className="w-6 h-6 text-red-600" />;
       case "warning":
-        return <AlertTriangle className="w-6 h-6 text-yellow-600" />;
+        return <TriangleAlert className="w-6 h-6 text-yellow-600" />;
       default:
         return <Info className="w-6 h-6 text-blue-600" />;
     }
