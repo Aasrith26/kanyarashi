@@ -5,6 +5,7 @@ Creates all required tables and indexes
 """
 
 import os
+import time
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 import logging
@@ -13,25 +14,32 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-def get_db_connection():
-    """Get database connection"""
-    try:
-        database_url = os.getenv("DATABASE_URL")
-        if database_url:
-            conn = psycopg2.connect(database_url)
-        else:
-            # Fallback for local development
-            conn = psycopg2.connect(
-                host="localhost",
-                port="5432",
-                database="recur_ai_db", 
-                user="postgres",
-                password="prameela@65"
-            )
-        return conn
-    except Exception as e:
-        logger.error(f"Database connection failed: {e}")
-        return None
+def get_db_connection(max_retries=5, delay=2):
+    """Get database connection with retry logic"""
+    for attempt in range(max_retries):
+        try:
+            database_url = os.getenv("DATABASE_URL")
+            if database_url:
+                conn = psycopg2.connect(database_url)
+            else:
+                # Fallback for local development
+                conn = psycopg2.connect(
+                    host="localhost",
+                    port="5432",
+                    database="recur_ai_db", 
+                    user="postgres",
+                    password="prameela@65"
+                )
+            logger.info(f"✅ Database connected on attempt {attempt + 1}")
+            return conn
+        except Exception as e:
+            logger.warning(f"Database connection attempt {attempt + 1} failed: {e}")
+            if attempt < max_retries - 1:
+                logger.info(f"Retrying in {delay} seconds...")
+                time.sleep(delay)
+            else:
+                logger.error(f"Database connection failed after {max_retries} attempts")
+    return None
 
 def init_database():
     """Initialize database with schema"""

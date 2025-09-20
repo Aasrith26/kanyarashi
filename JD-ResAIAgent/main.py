@@ -58,7 +58,16 @@ AWS_SECRET_KEY = os.getenv("AWS_SECRET_KEY")
 S3_BUCKET = os.getenv("S3_BUCKET")
 AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
 
-print(f"[INIT] S3 configured: bucket={S3_BUCKET}, region={AWS_REGION}")
+# Validate AWS configuration
+if not AWS_ACCESS_KEY or not AWS_SECRET_KEY or not S3_BUCKET:
+    print("⚠️  WARNING: AWS credentials not fully configured. S3 features will be disabled.")
+    print(f"[INIT] AWS_ACCESS_KEY: {'✅ Set' if AWS_ACCESS_KEY else '❌ Missing'}")
+    print(f"[INIT] AWS_SECRET_KEY: {'✅ Set' if AWS_SECRET_KEY else '❌ Missing'}")
+    print(f"[INIT] S3_BUCKET: {'✅ Set' if S3_BUCKET else '❌ Missing'}")
+    S3_ENABLED = False
+else:
+    print(f"[INIT] S3 configured: bucket={S3_BUCKET}, region={AWS_REGION}")
+    S3_ENABLED = True
 
 # Global AI models (loaded once)
 ai_model = None
@@ -1243,6 +1252,9 @@ async def upload_resume(
             s3_key = f"{clerk_id}/resumes/general/{uuid.uuid4()}_{file.filename}"
         
         # Upload to S3
+        if not S3_ENABLED:
+            raise HTTPException(status_code=500, detail="S3 not configured. Please set AWS credentials.")
+        
         try:
             session = aioboto3.Session()
             async with session.client(
@@ -2190,7 +2202,7 @@ async def generate_feedback_preview(resume_id: str, clerk_id: str):
         # Get resume content from S3
         try:
             async with aioboto3.Session().client('s3') as s3_client:
-                response = await s3_client.get_object(Bucket=os.getenv('S3_BUCKET'), Key=s3_key)
+                response = await s3_client.get_object(Bucket=S3_BUCKET, Key=s3_key)
                 resume_content = await response['Body'].read()
                 
                 # Extract text from resume
@@ -2274,7 +2286,7 @@ async def send_feedback_email(resume_id: str, request: SendFeedbackRequest, cler
             # Get resume content from S3
             try:
                 async with aioboto3.Session().client('s3') as s3_client:
-                    response = await s3_client.get_object(Bucket=os.getenv('S3_BUCKET'), Key=s3_key)
+                    response = await s3_client.get_object(Bucket=S3_BUCKET, Key=s3_key)
                     resume_content = await response['Body'].read()
                     
                     # Extract text from resume
@@ -2387,7 +2399,7 @@ async def send_bulk_feedback(request: BulkFeedbackRequest, clerk_id: str):
                 # Generate feedback
                 try:
                     async with aioboto3.Session().client('s3') as s3_client:
-                        response = await s3_client.get_object(Bucket=os.getenv('S3_BUCKET'), Key=s3_key)
+                        response = await s3_client.get_object(Bucket=S3_BUCKET, Key=s3_key)
                         resume_content = await response['Body'].read()
                         
                         # Extract text from resume
