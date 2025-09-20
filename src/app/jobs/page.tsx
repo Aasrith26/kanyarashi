@@ -17,6 +17,7 @@ import {
   X
 } from "lucide-react";
 import axios from "axios";
+import api from "@/lib/api";
 import NotificationPopup from "@/components/ui/notification-popup";
 import { useNotification } from "@/hooks/useNotification";
 
@@ -47,7 +48,7 @@ export default function JobsPage() {
   const fetchJobs = async () => {
     try {
       setIsLoading(true);
-      const response = await axios.get(`http://localhost:8000/job-postings/?clerk_id=${user?.id}`);
+      const response = await axios.get(api.jobPostings.list(user?.id || ''));
       setJobs(response.data);
     } catch (error) {
       console.error('Error fetching jobs:', error);
@@ -82,7 +83,7 @@ export default function JobsPage() {
 
   const handleViewJob = async (jobId: string) => {
     try {
-      const response = await axios.get(`http://localhost:8000/job-postings/${jobId}?clerk_id=${user?.id}`);
+      const response = await axios.get(api.jobPostings.get(jobId, user?.id || ''));
       setSelectedJob(response.data);
       setIsViewModalOpen(true);
     } catch (error) {
@@ -92,7 +93,7 @@ export default function JobsPage() {
 
   const handleEditJob = async (jobId: string) => {
     try {
-      const response = await axios.get(`http://localhost:8000/job-postings/${jobId}?clerk_id=${user?.id}`);
+      const response = await axios.get(api.jobPostings.get(jobId, user?.id || ''));
       setSelectedJob(response.data);
       setIsEditModalOpen(true);
     } catch (error) {
@@ -103,7 +104,7 @@ export default function JobsPage() {
   const handleDeleteJob = async (jobId: string) => {
     if (confirm('Are you sure you want to delete this job posting?')) {
       try {
-        await axios.delete(`http://localhost:8000/job-postings/${jobId}?clerk_id=${user?.id}`);
+        await axios.delete(api.jobPostings.delete(jobId, user?.id || ''));
         await fetchJobs(); // Refresh the list
       } catch (error) {
         console.error('Error deleting job:', error);
@@ -116,7 +117,7 @@ export default function JobsPage() {
     if (!selectedJob) return;
     
     try {
-      await axios.put(`http://localhost:8000/job-postings/${selectedJob.id}?clerk_id=${user?.id}`, jobData);
+      await axios.put(api.jobPostings.update(selectedJob.id, user?.id || ''), jobData);
       setIsEditModalOpen(false);
       setSelectedJob(null);
       await fetchJobs(); // Refresh the list

@@ -17,6 +17,7 @@ import {
   MessageSquare
 } from "lucide-react";
 import axios from "axios";
+import api from "@/lib/api";
 import { useSearchParams } from 'next/navigation';
 import FeedbackModal from "@/components/FeedbackModal";
 import BulkFeedbackModal from "@/components/BulkFeedbackModal";
@@ -276,7 +277,7 @@ function AnalysePageContent() {
     setError(null);
     
     try {
-      const response = await axios.get(`http://localhost:8000/analysis-sessions/${sessionId}?clerk_id=${user.id}`);
+      const response = await axios.get(api.analysisSessions.get(sessionId, user.id));
       const data = response.data;
       
       setSession(data.session);

@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import axios from "axios";
+import api from "@/lib/api";
 
 interface JobPosting {
   id: string;
@@ -91,11 +92,11 @@ export default function Dashboard() {
       if (!clerkId) return;
 
       // Fetch job postings
-      const jobsResponse = await axios.get(`http://localhost:8000/job-postings/?clerk_id=${clerkId}`);
+      const jobsResponse = await axios.get(api.jobPostings.list(clerkId));
       setJobPostings(jobsResponse.data);
 
       // Fetch analysis sessions
-      const analysesResponse = await axios.get(`http://localhost:8000/analysis-sessions/?clerk_id=${clerkId}`);
+      const analysesResponse = await axios.get(api.analysisSessions.list(clerkId));
       setAnalysisSessions(analysesResponse.data);
 
     } catch (error) {
@@ -135,7 +136,7 @@ export default function Dashboard() {
         formData.append('file', jdModal.jdFile);
       }
 
-      const response = await axios.post(`http://localhost:8000/job-postings/`, formData, {
+      const response = await axios.post(api.jobPostings.create(), formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

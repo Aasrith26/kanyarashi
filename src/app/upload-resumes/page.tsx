@@ -16,6 +16,7 @@ import {
   Briefcase
 } from "lucide-react";
 import axios from "axios";
+import api from "@/lib/api";
 import NotificationPopup from "@/components/ui/notification-popup";
 import { useNotification } from "@/hooks/useNotification";
 
@@ -70,9 +71,7 @@ export default function UploadResumesPage() {
     
     try {
       setIsLoadingResumes(true);
-      const url = selectedJobId 
-        ? `http://localhost:8000/resumes/s3/?clerk_id=${user.id}&job_posting_id=${selectedJobId}`
-        : `http://localhost:8000/resumes/s3/?clerk_id=${user.id}`;
+      const url = api.resumes.s3List(user.id, selectedJobId);
       
       const response = await axios.get(url);
       console.log('S3 resumes response:', response.data);
@@ -91,7 +90,7 @@ export default function UploadResumesPage() {
       
       try {
         setIsLoadingJobs(true);
-        const response = await axios.get(`http://localhost:8000/job-postings/?clerk_id=${user.id}`);
+        const response = await axios.get(api.jobPostings.list(user.id));
         setJobPostings(response.data);
       } catch (error) {
         console.error('Error fetching job postings:', error);
@@ -149,7 +148,7 @@ export default function UploadResumesPage() {
     setSelectedResumes(prev => [...prev, newResume]);
 
     try {
-      await axios.post('http://localhost:8000/resumes/upload', formData, {
+      await axios.post(api.resumes.upload(), formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -204,7 +203,7 @@ export default function UploadResumesPage() {
     setSelectedResumes(prev => [...prev, newResume]);
 
     try {
-      await axios.post('http://localhost:8000/resumes/select', {
+      await axios.post(api.resumes.select(), {
         clerk_id: user.id,
         s3_key: resume.s3_key,
         job_posting_id: selectedJobId || null
@@ -250,7 +249,7 @@ export default function UploadResumesPage() {
     
     setIsCleaningUp(true);
     try {
-      await axios.post(`http://localhost:8000/resumes/cleanup?clerk_id=${user.id}`);
+      await axios.post(api.resumes.cleanup(user.id));
       await fetchS3Resumes();
       showSuccess('Cleanup Complete', 'Database cleanup completed successfully!');
     } catch (error) {

@@ -18,6 +18,7 @@ import {
   RotateCcw
 } from "lucide-react";
 import axios from "axios";
+import api from "@/lib/api";
 import NotificationPopup from "@/components/ui/notification-popup";
 import { useNotification } from "@/hooks/useNotification";
 
@@ -45,7 +46,7 @@ export default function AnalysesPage() {
   const fetchAnalyses = async () => {
     try {
       setIsLoading(true);
-      const response = await axios.get(`http://localhost:8000/analysis-sessions/?clerk_id=${user?.id}`);
+      const response = await axios.get(api.analysisSessions.list(user?.id || ''));
       setAnalyses(response.data);
     } catch (error) {
       console.error('Error fetching analyses:', error);
@@ -139,7 +140,7 @@ export default function AnalysesPage() {
     if (!selectedAnalysis || !user?.id) return;
     
     try {
-      await axios.delete(`http://localhost:8000/analysis-sessions/${selectedAnalysis.id}?clerk_id=${user.id}`);
+      await axios.delete(api.analysisSessions.delete(selectedAnalysis.id, user.id));
       setAnalyses(analyses.filter(a => a.id !== selectedAnalysis.id));
       setShowDeleteModal(false);
       setSelectedAnalysis(null);
@@ -165,7 +166,7 @@ export default function AnalysesPage() {
   const performResetAnalysis = async (analysis: AnalysisSession) => {
     
     try {
-      await axios.post(`http://localhost:8000/analysis-sessions/${analysis.id}/reset?clerk_id=${user.id}`);
+      await axios.post(api.analysisSessions.reset(analysis.id, user.id));
       fetchAnalyses(); // Refresh the list
       showSuccess('Session Reset', 'Analysis session reset successfully!');
     } catch (error) {
