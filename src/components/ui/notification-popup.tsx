@@ -45,7 +45,7 @@ const NotificationPopup: React.FC<NotificationPopupProps> = ({
     } else {
       setIsVisible(false);
     }
-  }, [isOpen, duration]);
+  }, [isOpen, duration, handleClose]);
 
   const handleClose = () => {
     setIsVisible(false);
@@ -54,12 +54,6 @@ const NotificationPopup: React.FC<NotificationPopupProps> = ({
     }, 200); // Wait for animation to complete
   };
 
-  const handleConfirm = () => {
-    if (onConfirm) {
-      onConfirm();
-    }
-    handleClose();
-  };
 
   const handleCancel = () => {
     if (onCancel) {

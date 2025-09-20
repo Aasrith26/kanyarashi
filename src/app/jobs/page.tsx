@@ -36,7 +36,7 @@ interface JobPosting {
 export default function JobsPage() {
   const { isSignedIn, isLoaded, user } = useUser();
   const router = useRouter();
-  const { notification, hideNotification, showSuccess, showError } = useNotification();
+  const { notification, hideNotification, showError } = useNotification();
   const [jobs, setJobs] = useState<JobPosting[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -52,16 +52,16 @@ export default function JobsPage() {
     );
   }
 
+  if (!isSignedIn) {
+    router.push('/');
+    return null;
+  }
+
   useEffect(() => {
     if (isSignedIn && user) {
       fetchJobs();
     }
   }, [isSignedIn, user]);
-
-  if (!isSignedIn) {
-    router.push('/');
-    return null;
-  }
 
   const fetchJobs = async () => {
     try {

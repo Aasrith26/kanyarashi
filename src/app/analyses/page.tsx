@@ -50,16 +50,16 @@ export default function AnalysesPage() {
     );
   }
 
+  if (!isSignedIn) {
+    router.push('/');
+    return null;
+  }
+
   useEffect(() => {
     if (isSignedIn && user) {
       fetchAnalyses();
     }
   }, [isSignedIn, user]);
-
-  if (!isSignedIn) {
-    router.push('/');
-    return null;
-  }
 
   const fetchAnalyses = async () => {
     try {

@@ -11,7 +11,7 @@ interface FileUploadProps {
 const FileUpload: React.FC<FileUploadProps> = ({ onUploadComplete }) => {
     const [uploaded, setUploaded] = useState(false);
     const [uploading, setUploading] = useState(false);
-    const {getRootProps, getInputProps, isDragActive} = useDropzone({
+    const {getRootProps, getInputProps} = useDropzone({
         accept: {
             'application/pdf': ['.pdf'],
             'application/msword': ['.doc'],

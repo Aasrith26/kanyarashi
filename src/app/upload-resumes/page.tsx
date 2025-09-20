@@ -149,7 +149,7 @@ export default function UploadResumesPage() {
     setSelectedResumes(prev => [...prev, newResume]);
 
     try {
-      const response = await axios.post('http://localhost:8000/resumes/upload', formData, {
+      await axios.post('http://localhost:8000/resumes/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -204,7 +204,7 @@ export default function UploadResumesPage() {
     setSelectedResumes(prev => [...prev, newResume]);
 
     try {
-      const response = await axios.post('http://localhost:8000/resumes/select', {
+      await axios.post('http://localhost:8000/resumes/select', {
         clerk_id: user.id,
         s3_key: resume.s3_key,
         job_posting_id: selectedJobId || null
