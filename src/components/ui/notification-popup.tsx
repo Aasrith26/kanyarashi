@@ -33,6 +33,13 @@ const NotificationPopup: React.FC<NotificationPopupProps> = ({
 }) => {
   const [isVisible, setIsVisible] = useState(false);
 
+  const handleClose = useCallback(() => {
+    setIsVisible(false);
+    setTimeout(() => {
+      onClose();
+    }, 200); // Wait for animation to complete
+  }, [onClose]);
+
   useEffect(() => {
     if (isOpen) {
       setIsVisible(true);
@@ -46,13 +53,6 @@ const NotificationPopup: React.FC<NotificationPopupProps> = ({
       setIsVisible(false);
     }
   }, [isOpen, duration, handleClose]);
-
-  const handleClose = useCallback(() => {
-    setIsVisible(false);
-    setTimeout(() => {
-      onClose();
-    }, 200); // Wait for animation to complete
-  }, [onClose]);
 
 
   const handleCancel = () => {

@@ -1,5 +1,5 @@
-# Use Python 3.13 slim image for smaller size
-FROM python:3.13-slim
+# Use Python 3.11 slim image (more stable and widely available)
+FROM python:3.11-slim
 
 # Set working directory
 WORKDIR /app
@@ -9,6 +9,7 @@ RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
     libpq-dev \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first (for better caching)

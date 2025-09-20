@@ -80,12 +80,12 @@ if AI_AVAILABLE:
         
         # Initialize LLM
         llm = ChatOpenAI(
-            model="qwen/qwen3-14b:free",
+            model="openai/gpt-3.5-turbo",
             temperature=0.3,
             max_tokens=2000,
             timeout=60
         )
-        print("[INIT] LLM model configured: qwen/qwen3-14b:free")
+        print("[INIT] LLM model configured: qx-ai/grok-4-fast:free")
         
         print("AI models loaded successfully")
         
@@ -531,15 +531,23 @@ async def process_single_resume(resume_id: str, session_id: str, job_description
         if resume_analyzer:
             resume_text = resume_analyzer.extract_resume_text(file_content, file_type)
             
-            # Extract candidate name from resume content
+            # Extract candidate name and contact info from resume content
             extracted_name = resume_analyzer.extract_candidate_name_from_resume(resume_text)
             print(f"[process_single_resume] Extracted candidate name: {extracted_name}")
             
-            # Always update candidate name in database (even if "Unknown Candidate")
+            # Extract email and phone from resume content
+            import re
+            email_match = re.findall(r"\b[\w\.\-]+@[\w\.\-]+\.[a-zA-Z]{2,}\b", resume_text)
+            phone_match = re.findall(r"\+?\d[\d\s\-]{8,13}\d", resume_text)
+            extracted_email = email_match[0] if email_match else "N/A"
+            extracted_phone = phone_match[0] if phone_match else "N/A"
+            print(f"[process_single_resume] Extracted email: {extracted_email}, phone: {extracted_phone}")
+            
+            # Update candidate info in database
             cur.execute("""
-                UPDATE resumes SET candidate_name = %s WHERE id = %s
-            """, (extracted_name, resume_id))
-            print(f"[process_single_resume] Updated candidate name to: {extracted_name}")
+                UPDATE resumes SET candidate_name = %s, candidate_email = %s, candidate_phone = %s WHERE id = %s
+            """, (extracted_name, extracted_email, extracted_phone, resume_id))
+            print(f"[process_single_resume] Updated candidate info: name={extracted_name}, email={extracted_email}, phone={extracted_phone}")
             
             # Use AI analysis with job description (standard template for general analysis)
             if not job_description:
@@ -1054,13 +1062,40 @@ async def select_resume(request: dict):
         # Extract candidate name from filename
         candidate_name = extract_name_from_filename(filename)
         
+        # Try to extract email and phone from resume content
+        candidate_email = "N/A"
+        candidate_phone = "N/A"
+        try:
+            if resume_analyzer:
+                # Download and extract text from S3
+                async with aioboto3.Session().client(
+                    's3',
+                    aws_access_key_id=AWS_ACCESS_KEY,
+                    aws_secret_access_key=AWS_SECRET_KEY,
+                    region_name=AWS_REGION
+                ) as s3_client:
+                    response = await s3_client.get_object(Bucket=S3_BUCKET, Key=s3_key)
+                    content = await response['Body'].read()
+                    resume_text = resume_analyzer.extract_resume_text(content, content_type)
+                    
+                    # Extract email and phone
+                    import re
+                    email_match = re.findall(r"\b[\w\.\-]+@[\w\.\-]+\.[a-zA-Z]{2,}\b", resume_text)
+                    phone_match = re.findall(r"\+?\d[\d\s\-]{8,13}\d", resume_text)
+                    candidate_email = email_match[0] if email_match else "N/A"
+                    candidate_phone = phone_match[0] if phone_match else "N/A"
+                    
+                    print(f"[select_resume] Extracted candidate info: name={candidate_name}, email={candidate_email}, phone={candidate_phone}")
+        except Exception as e:
+            print(f"[select_resume] Info extraction failed: {e}")
+        
         # Create resume record
         cur.execute("""
             INSERT INTO resumes (user_id, file_name, file_type, file_size, job_posting_id, status, candidate_name, candidate_email, candidate_phone, s3_resume_key)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING id
         """, (user[0], filename, content_type, file_size, job_posting_id, 'selected', 
-              candidate_name, 'candidate@example.com', 'N/A', s3_key))
+              candidate_name, candidate_email, candidate_phone, s3_key))
         
         resume_id = cur.fetchone()[0]
         print(f"[select_resume] inserted resume_id={resume_id}")
@@ -1227,15 +1262,25 @@ async def upload_resume(
             print(f"[upload_resume] S3 upload failed: {e}")
             raise HTTPException(status_code=500, detail=f"S3 upload failed: {str(e)}")
         
-        # Extract candidate name from resume content
+        # Extract candidate info from resume content
         candidate_name = "Unknown Candidate"
+        candidate_email = "N/A"
+        candidate_phone = "N/A"
         try:
             if resume_analyzer:
                 resume_text = resume_analyzer.extract_resume_text(content, file.content_type)
                 candidate_name = resume_analyzer.extract_candidate_name_from_resume(resume_text)
-                print(f"[upload_resume] Extracted candidate name: {candidate_name}")
+                
+                # Extract email and phone
+                import re
+                email_match = re.findall(r"\b[\w\.\-]+@[\w\.\-]+\.[a-zA-Z]{2,}\b", resume_text)
+                phone_match = re.findall(r"\+?\d[\d\s\-]{8,13}\d", resume_text)
+                candidate_email = email_match[0] if email_match else "N/A"
+                candidate_phone = phone_match[0] if phone_match else "N/A"
+                
+                print(f"[upload_resume] Extracted candidate info: name={candidate_name}, email={candidate_email}, phone={candidate_phone}")
         except Exception as e:
-            print(f"[upload_resume] Name extraction failed: {e}")
+            print(f"[upload_resume] Info extraction failed: {e}")
         
         # Create resume record
         cur.execute("""
@@ -1243,7 +1288,7 @@ async def upload_resume(
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING id
         """, (user[0], file.filename, file.content_type, len(content), job_posting_id, 'uploaded', 
-              candidate_name, 'candidate@example.com', 'N/A', s3_key))
+              candidate_name, candidate_email, candidate_phone, s3_key))
         
         resume_id = cur.fetchone()[0]
         print(f"[upload_resume] inserted resume_id={resume_id}")
@@ -2091,6 +2136,386 @@ def reset_analysis_session(session_id: str):
     except Exception as e:
         conn.rollback()
         raise HTTPException(status_code=500, detail=f"Error resetting analysis session: {str(e)}")
+    finally:
+        cur.close()
+        conn.close()
+
+# Feedback Email System
+from email_service import send_feedback_email_async, EmailResult
+from feedback_generator import generate_candidate_feedback, FeedbackResponse
+
+class SendFeedbackRequest(BaseModel):
+    resume_id: str
+    analysis_session_id: str
+    custom_subject: Optional[str] = None
+    custom_feedback: Optional[str] = None
+
+class BulkFeedbackRequest(BaseModel):
+    resume_ids: List[str]
+    analysis_session_id: str
+    custom_subject: Optional[str] = None
+
+@app.post("/feedback/generate/{resume_id}")
+async def generate_feedback_preview(resume_id: str, clerk_id: str):
+    """Generate feedback preview for a candidate without sending"""
+    conn = get_db_connection()
+    if not conn:
+        raise HTTPException(status_code=500, detail="Database connection failed")
+    
+    try:
+        cur = conn.cursor()
+        
+        # Get resume and analysis data
+        cur.execute("""
+            SELECT r.candidate_name, r.candidate_email, r.s3_resume_key,
+                   ra.overall_fit_score, ra.skill_match_score, ra.project_relevance_score,
+                   ra.problem_solving_score, ra.tools_score, ra.summary,
+                   jp.title, jp.description, analysis_sessions.id as session_id
+            FROM resumes r
+            JOIN resume_analyses ra ON r.id = ra.resume_id
+            JOIN analysis_sessions ON ra.analysis_session_id = analysis_sessions.id
+            JOIN job_postings jp ON analysis_sessions.job_posting_id = jp.id
+            JOIN users u ON analysis_sessions.user_id = u.id
+            WHERE r.id = %s AND u.clerk_id = %s
+        """, (resume_id, clerk_id))
+        
+        result = cur.fetchone()
+        if not result:
+            raise HTTPException(status_code=404, detail="Resume or analysis not found")
+        
+        (candidate_name, candidate_email, s3_key, overall_fit, skill_match,
+         project_relevance, problem_solving, tools_score, summary,
+         job_title, job_description, session_id) = result
+        
+        # Get resume content from S3
+        try:
+            async with aioboto3.Session().client('s3') as s3_client:
+                response = await s3_client.get_object(Bucket=os.getenv('S3_BUCKET'), Key=s3_key)
+                resume_content = await response['Body'].read()
+                
+                # Extract text from resume
+                analyzer = ResumeAnalyzer()
+                resume_text = analyzer.extract_resume_text(resume_content, s3_key.split('.')[-1])
+        except Exception as e:
+            print(f"Error reading resume from S3: {e}")
+            resume_text = "Resume content not available"
+        
+        # Generate feedback
+        analysis_results = {
+            "Overall Fit": int(overall_fit * 100),
+            "Skill Match": int(skill_match * 100),
+            "Project Relevance": int(project_relevance * 100),
+            "Problem Solving": int(problem_solving * 100),
+            "Tools": int(tools_score * 100),
+            "Summary": summary
+        }
+        
+        feedback_response = await generate_candidate_feedback(
+            candidate_name=candidate_name,
+            resume_content=resume_text,
+            analysis_results=analysis_results,
+            job_description=job_description,
+            job_title=job_title
+        )
+        
+        return {
+            "candidate_name": candidate_name,
+            "candidate_email": candidate_email,
+            "feedback_content": feedback_response.feedback_content,
+            "subject_suggestion": feedback_response.subject_suggestion,
+            "tone": feedback_response.tone,
+            "key_areas": feedback_response.key_areas
+        }
+        
+    except Exception as e:
+        print(f"Error generating feedback: {e}")
+        raise HTTPException(status_code=500, detail=f"Error generating feedback: {str(e)}")
+    finally:
+        cur.close()
+        conn.close()
+
+@app.post("/feedback/send/{resume_id}")
+async def send_feedback_email(resume_id: str, request: SendFeedbackRequest, clerk_id: str):
+    """Send feedback email to a candidate"""
+    conn = get_db_connection()
+    if not conn:
+        raise HTTPException(status_code=500, detail="Database connection failed")
+    
+    try:
+        cur = conn.cursor()
+        
+        # Get resume and analysis data
+        cur.execute("""
+            SELECT r.candidate_name, r.candidate_email, r.s3_resume_key,
+                   ra.overall_fit_score, ra.skill_match_score, ra.project_relevance_score,
+                   ra.problem_solving_score, ra.tools_score, ra.summary,
+                   jp.title, jp.description, analysis_sessions.id as session_id, u.id as user_id
+            FROM resumes r
+            JOIN resume_analyses ra ON r.id = ra.resume_id
+            JOIN analysis_sessions ON ra.analysis_session_id = analysis_sessions.id
+            JOIN job_postings jp ON analysis_sessions.job_posting_id = jp.id
+            JOIN users u ON analysis_sessions.user_id = u.id
+            WHERE r.id = %s AND u.clerk_id = %s
+        """, (resume_id, clerk_id))
+        
+        result = cur.fetchone()
+        if not result:
+            raise HTTPException(status_code=404, detail="Resume or analysis not found")
+        
+        (candidate_name, candidate_email, s3_key, overall_fit, skill_match,
+         project_relevance, problem_solving, tools_score, summary,
+         job_title, job_description, session_id, user_id) = result
+        
+        # Generate or use custom feedback
+        if request.custom_feedback:
+            feedback_content = request.custom_feedback
+            subject = request.custom_subject or f"Feedback on Your Application - {job_title}"
+        else:
+            # Get resume content from S3
+            try:
+                async with aioboto3.Session().client('s3') as s3_client:
+                    response = await s3_client.get_object(Bucket=os.getenv('S3_BUCKET'), Key=s3_key)
+                    resume_content = await response['Body'].read()
+                    
+                    # Extract text from resume
+                    analyzer = ResumeAnalyzer()
+                    resume_text = analyzer.extract_resume_text(resume_content, s3_key.split('.')[-1])
+            except Exception as e:
+                print(f"Error reading resume from S3: {e}")
+                resume_text = "Resume content not available"
+            
+            # Generate feedback
+            analysis_results = {
+                "Overall Fit": int(overall_fit * 100),
+                "Skill Match": int(skill_match * 100),
+                "Project Relevance": int(project_relevance * 100),
+                "Problem Solving": int(problem_solving * 100),
+                "Tools": int(tools_score * 100),
+                "Summary": summary
+            }
+            
+            feedback_response = await generate_candidate_feedback(
+                candidate_name=candidate_name,
+                resume_content=resume_text,
+                analysis_results=analysis_results,
+                job_description=job_description,
+                job_title=job_title
+            )
+            
+            feedback_content = feedback_response.feedback_content
+            subject = request.custom_subject or feedback_response.subject_suggestion
+        
+        # Send email
+        email_result = await send_feedback_email_async(
+            candidate_name=candidate_name,
+            candidate_email=candidate_email,
+            feedback_content=feedback_content,
+            job_title=job_title,
+            custom_subject=subject
+        )
+        
+        # Record in database
+        cur.execute("""
+            INSERT INTO feedback_emails (
+                resume_id, analysis_session_id, recruiter_id, candidate_email,
+                candidate_name, feedback_content, email_subject, status,
+                email_provider_message_id, error_message
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """, (
+            resume_id, request.analysis_session_id, user_id, candidate_email,
+            candidate_name, feedback_content, subject, 
+            "sent" if email_result.success else "failed",
+            email_result.message_id, email_result.error_message
+        ))
+        
+        conn.commit()
+        
+        return {
+            "success": email_result.success,
+            "message": "Feedback email sent successfully" if email_result.success else "Failed to send email",
+            "error": email_result.error_message
+        }
+        
+    except Exception as e:
+        conn.rollback()
+        print(f"Error sending feedback email: {e}")
+        raise HTTPException(status_code=500, detail=f"Error sending feedback email: {str(e)}")
+    finally:
+        cur.close()
+        conn.close()
+
+@app.post("/feedback/send-bulk")
+async def send_bulk_feedback(request: BulkFeedbackRequest, clerk_id: str):
+    """Send feedback emails to multiple candidates"""
+    conn = get_db_connection()
+    if not conn:
+        raise HTTPException(status_code=500, detail="Database connection failed")
+    
+    try:
+        cur = conn.cursor()
+        results = []
+        
+        for resume_id in request.resume_ids:
+            try:
+                # Get resume and analysis data
+                cur.execute("""
+                    SELECT r.candidate_name, r.candidate_email, r.s3_resume_key,
+                           ra.overall_fit_score, ra.skill_match_score, ra.project_relevance_score,
+                           ra.problem_solving_score, ra.tools_score, ra.summary,
+                           jp.title, jp.description, analysis_sessions.id as session_id, u.id as user_id
+                    FROM resumes r
+                    JOIN resume_analyses ra ON r.id = ra.resume_id
+                    JOIN analysis_sessions ON ra.analysis_session_id = analysis_sessions.id
+                    JOIN job_postings jp ON analysis_sessions.job_posting_id = jp.id
+                    JOIN users u ON analysis_sessions.user_id = u.id
+                    WHERE r.id = %s AND u.clerk_id = %s
+                """, (resume_id, clerk_id))
+                
+                result = cur.fetchone()
+                if not result:
+                    results.append({
+                        "resume_id": resume_id,
+                        "success": False,
+                        "error": "Resume or analysis not found"
+                    })
+                    continue
+                
+                (candidate_name, candidate_email, s3_key, overall_fit, skill_match,
+                 project_relevance, problem_solving, tools_score, summary,
+                 job_title, job_description, session_id, user_id) = result
+                
+                # Generate feedback
+                try:
+                    async with aioboto3.Session().client('s3') as s3_client:
+                        response = await s3_client.get_object(Bucket=os.getenv('S3_BUCKET'), Key=s3_key)
+                        resume_content = await response['Body'].read()
+                        
+                        # Extract text from resume
+                        analyzer = ResumeAnalyzer()
+                        resume_text = analyzer.extract_resume_text(resume_content, s3_key.split('.')[-1])
+                except Exception as e:
+                    print(f"Error reading resume from S3: {e}")
+                    resume_text = "Resume content not available"
+                
+                analysis_results = {
+                    "Overall Fit": int(overall_fit * 100),
+                    "Skill Match": int(skill_match * 100),
+                    "Project Relevance": int(project_relevance * 100),
+                    "Problem Solving": int(problem_solving * 100),
+                    "Tools": int(tools_score * 100),
+                    "Summary": summary
+                }
+                
+                feedback_response = await generate_candidate_feedback(
+                    candidate_name=candidate_name,
+                    resume_content=resume_text,
+                    analysis_results=analysis_results,
+                    job_description=job_description,
+                    job_title=job_title
+                )
+                
+                # Send email
+                email_result = await send_feedback_email_async(
+                    candidate_name=candidate_name,
+                    candidate_email=candidate_email,
+                    feedback_content=feedback_response.feedback_content,
+                    job_title=job_title,
+                    custom_subject=request.custom_subject or feedback_response.subject_suggestion
+                )
+                
+                # Record in database
+                cur.execute("""
+                    INSERT INTO feedback_emails (
+                        resume_id, analysis_session_id, recruiter_id, candidate_email,
+                        candidate_name, feedback_content, email_subject, status,
+                        email_provider_message_id, error_message
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """, (
+                    resume_id, request.analysis_session_id, user_id, candidate_email,
+                    candidate_name, feedback_response.feedback_content, 
+                    request.custom_subject or feedback_response.subject_suggestion,
+                    "sent" if email_result.success else "failed",
+                    email_result.message_id, email_result.error_message
+                ))
+                
+                results.append({
+                    "resume_id": resume_id,
+                    "candidate_name": candidate_name,
+                    "candidate_email": candidate_email,
+                    "success": email_result.success,
+                    "error": email_result.error_message
+                })
+                
+            except Exception as e:
+                results.append({
+                    "resume_id": resume_id,
+                    "success": False,
+                    "error": str(e)
+                })
+        
+        conn.commit()
+        
+        return {
+            "total_processed": len(request.resume_ids),
+            "successful": len([r for r in results if r["success"]]),
+            "failed": len([r for r in results if not r["success"]]),
+            "results": results
+        }
+        
+    except Exception as e:
+        conn.rollback()
+        print(f"Error sending bulk feedback emails: {e}")
+        raise HTTPException(status_code=500, detail=f"Error sending bulk feedback emails: {str(e)}")
+    finally:
+        cur.close()
+        conn.close()
+
+@app.get("/feedback/history/{session_id}")
+async def get_feedback_history(session_id: str, clerk_id: str):
+    """Get feedback email history for an analysis session"""
+    conn = get_db_connection()
+    if not conn:
+        raise HTTPException(status_code=500, detail="Database connection failed")
+    
+    try:
+        cur = conn.cursor()
+        
+        # Get feedback emails for the session
+        cur.execute("""
+            SELECT fe.id, fe.candidate_name, fe.candidate_email, fe.email_subject,
+                   fe.status, fe.sent_at, fe.delivered_at, fe.opened_at, fe.error_message
+            FROM feedback_emails fe
+            JOIN analysis_sessions ON fe.analysis_session_id = analysis_sessions.id
+            JOIN users u ON analysis_sessions.user_id = u.id
+            WHERE fe.analysis_session_id = %s AND u.clerk_id = %s
+            ORDER BY fe.sent_at DESC
+        """, (session_id, clerk_id))
+        
+        results = cur.fetchall()
+        
+        feedback_history = []
+        for row in results:
+            feedback_history.append({
+                "id": str(row[0]),
+                "candidate_name": row[1],
+                "candidate_email": row[2],
+                "email_subject": row[3],
+                "status": row[4],
+                "sent_at": row[5].isoformat() if row[5] else None,
+                "delivered_at": row[6].isoformat() if row[6] else None,
+                "opened_at": row[7].isoformat() if row[7] else None,
+                "error_message": row[8]
+            })
+        
+        return {
+            "session_id": session_id,
+            "total_emails": len(feedback_history),
+            "emails": feedback_history
+        }
+        
+    except Exception as e:
+        print(f"Error getting feedback history: {e}")
+        raise HTTPException(status_code=500, detail=f"Error getting feedback history: {str(e)}")
     finally:
         cur.close()
         conn.close()

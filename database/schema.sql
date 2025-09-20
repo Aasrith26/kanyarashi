@@ -119,6 +119,25 @@ CREATE TABLE IF NOT EXISTS extracted_education (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Feedback emails table
+CREATE TABLE IF NOT EXISTS feedback_emails (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    resume_id UUID REFERENCES resumes(id) ON DELETE CASCADE,
+    analysis_session_id UUID REFERENCES analysis_sessions(id) ON DELETE CASCADE,
+    recruiter_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    candidate_email VARCHAR(255) NOT NULL,
+    candidate_name VARCHAR(255) NOT NULL,
+    feedback_content TEXT NOT NULL,
+    email_subject VARCHAR(500) NOT NULL,
+    status VARCHAR(50) DEFAULT 'pending', -- pending, sent, delivered, failed, opened
+    email_provider_message_id VARCHAR(255),
+    error_message TEXT,
+    sent_at TIMESTAMP WITH TIME ZONE,
+    delivered_at TIMESTAMP WITH TIME ZONE,
+    opened_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_users_clerk_id ON users(clerk_id);
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
@@ -135,6 +154,10 @@ CREATE INDEX IF NOT EXISTS idx_resume_analyses_overall_score ON resume_analyses(
 CREATE INDEX IF NOT EXISTS idx_extracted_skills_resume_id ON extracted_skills(resume_id);
 CREATE INDEX IF NOT EXISTS idx_extracted_experience_resume_id ON extracted_experience(resume_id);
 CREATE INDEX IF NOT EXISTS idx_extracted_education_resume_id ON extracted_education(resume_id);
+CREATE INDEX IF NOT EXISTS idx_feedback_emails_resume_id ON feedback_emails(resume_id);
+CREATE INDEX IF NOT EXISTS idx_feedback_emails_session_id ON feedback_emails(analysis_session_id);
+CREATE INDEX IF NOT EXISTS idx_feedback_emails_recruiter_id ON feedback_emails(recruiter_id);
+CREATE INDEX IF NOT EXISTS idx_feedback_emails_status ON feedback_emails(status);
 
 -- Create updated_at trigger function
 CREATE OR REPLACE FUNCTION update_updated_at_column()

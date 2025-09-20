@@ -174,6 +174,32 @@ class ExtractedEducation(Base):
     # Relationships
     resume = relationship("Resume", back_populates="education")
 
+class FeedbackEmail(Base):
+    __tablename__ = "feedback_emails"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    resume_id = Column(UUID(as_uuid=True), ForeignKey("resumes.id"), nullable=False)
+    analysis_session_id = Column(UUID(as_uuid=True), ForeignKey("analysis_sessions.id"), nullable=False)
+    recruiter_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    candidate_email = Column(String(255), nullable=False)
+    candidate_name = Column(String(255), nullable=False)
+    feedback_content = Column(Text, nullable=False)
+    email_subject = Column(String(500), nullable=False)
+    status = Column(String(50), default="sent")  # sent, failed, bounced, delivered, opened
+    sent_at = Column(DateTime(timezone=True), server_default=func.now())
+    delivered_at = Column(DateTime(timezone=True))
+    opened_at = Column(DateTime(timezone=True))
+    clicked_at = Column(DateTime(timezone=True))
+    error_message = Column(Text)
+    email_provider_message_id = Column(String(500))
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    
+    # Relationships
+    resume = relationship("Resume")
+    analysis_session = relationship("AnalysisSession")
+    recruiter = relationship("User")
+
 # Database dependency
 def get_db():
     db = SessionLocal()

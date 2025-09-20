@@ -156,7 +156,7 @@ export default function Home() {
             <span className="text-xl font-bold">RecurAI</span>
           </div>
           <p className="text-gray-400">
-            © 2024 RecurAI. Making recruitment more human.
+            © 2025 RecurAI. Making recruitment more human.
           </p>
         </div>
       </footer>

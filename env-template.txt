@@ -24,3 +24,39 @@ NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/dashboard
 NEXT_PUBLIC_S3_BUCKET_NAME=your-s3-bucket-name
 NEXT_PUBLIC_S3_ACCESS_KEY_ID=your-aws-access-key
 NEXT_PUBLIC_S3_SECRET_ACCESS_KEY_ID=your-aws-secret-key
+
+# Email Configuration (FREE providers only)
+# Option 1: Gmail (FREE - recommended)
+EMAIL_PROVIDER=gmail
+SMTP_USERNAME=your-email@gmail.com
+SMTP_PASSWORD=your-app-password
+# Note: Use App Password, not your regular Gmail password
+# Enable 2FA and generate App Password: https://support.google.com/accounts/answer/185833
+
+# Option 2: Outlook/Hotmail (FREE)
+# EMAIL_PROVIDER=outlook
+# SMTP_USERNAME=your-email@outlook.com
+# SMTP_PASSWORD=your-password
+
+# Option 3: Yahoo (FREE)
+# EMAIL_PROVIDER=yahoo
+# SMTP_USERNAME=your-email@yahoo.com
+# SMTP_PASSWORD=your-app-password
+
+# Option 4: Custom SMTP (FREE providers)
+# EMAIL_PROVIDER=custom_smtp
+# SMTP_SERVER=your-smtp-server.com
+# SMTP_PORT=587
+# SMTP_USERNAME=your-email@domain.com
+# SMTP_PASSWORD=your-password
+
+# Email Settings
+FROM_EMAIL=your-email@gmail.com
+FROM_NAME=Innomatics Research Lab
+REPLY_TO_EMAIL=your-email@gmail.com
+USE_TLS=true
+USE_SSL=false
+
+# OpenAI Configuration (for feedback generation)
+OPENAI_API_KEY=your-openai-api-key
+OPENAI_MODEL=gpt-3.5-turbo

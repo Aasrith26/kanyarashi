@@ -12,10 +12,14 @@ import {
   Clock,
   ArrowLeft,
   Download,
-  Share2
+  Share2,
+  Mail,
+  MessageSquare
 } from "lucide-react";
 import axios from "axios";
 import { useSearchParams } from 'next/navigation';
+import FeedbackModal from "@/components/FeedbackModal";
+import BulkFeedbackModal from "@/components/BulkFeedbackModal";
 
 interface Evaluation {
   "Overall Fit": number;
@@ -68,18 +72,25 @@ const ScoreBar = ({ score, label }: { score: number; label: string }) => {
   );
 };
 
-const CandidateCard = ({ candidate, rank }: { candidate: Candidate; rank: number }) => (
+const CandidateCard = ({ 
+  candidate, 
+  rank, 
+  onSendFeedback 
+}: { 
+  candidate: Candidate; 
+  rank: number;
+  onSendFeedback: (candidate: Candidate) => void;
+}) => (
   <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
     <div className="flex justify-between items-start mb-4">
       <div className="flex items-center space-x-4">
-        <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold">
-          {rank}
+        <div className="min-w-[200px]">
+          <div className="text-xl font-bold text-slate-900">{candidate.name}</div>
+          <div className="text-sm text-slate-600">{candidate.email}</div>
         </div>
-        <div>
-          <h3 className="text-xl font-bold text-slate-900">{candidate.name}</h3>
-          <p className="text-sm text-blue-600 font-medium">{candidate.email}</p>
+        <div className="flex-1">
           {candidate.phone && (
-            <p className="text-sm text-slate-600">{candidate.phone}</p>
+            <p className="text-sm text-slate-600">Phone: {candidate.phone}</p>
           )}
         </div>
       </div>
@@ -101,24 +112,50 @@ const CandidateCard = ({ candidate, rank }: { candidate: Candidate; rank: number
         <ScoreBar score={candidate.evaluation["Tools"]} label="Tools & Tech" />
       </div>
       
-      <div className="flex justify-end space-x-2 mt-6">
-        <Button variant="outline" size="sm" className="text-slate-600 border-slate-300">
-          <Download className="w-4 h-4 mr-2" />
-          Download
-        </Button>
-        <Button variant="outline" size="sm" className="text-slate-600 border-slate-300">
-          <Share2 className="w-4 h-4 mr-2" />
-          Share
+      <div className="flex justify-between items-center mt-6">
+        <div className="flex space-x-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="text-slate-600 border-slate-300"
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Download
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="text-slate-600 border-slate-300"
+          >
+            <Share2 className="w-4 h-4 mr-2" />
+            Share
+          </Button>
+        </div>
+        
+        <Button 
+          onClick={() => onSendFeedback(candidate)}
+          className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+        >
+          <Mail className="w-4 h-4 mr-2" />
+          Send Feedback
         </Button>
       </div>
     </div>
   </div>
 );
 
-const ResultsDisplay = ({ results, isLoading, session }: { 
+const ResultsDisplay = ({ 
+  results, 
+  isLoading, 
+  session, 
+  onSendFeedback, 
+  onSendBulkFeedback 
+}: { 
   results: Candidate[]; 
   isLoading: boolean; 
   session?: AnalysisSession;
+  onSendFeedback: (candidate: Candidate) => void;
+  onSendBulkFeedback: (candidates: Candidate[]) => void;
 }) => {
   if (isLoading) {
     return (
@@ -164,23 +201,43 @@ const ResultsDisplay = ({ results, isLoading, session }: {
         <div>
           <h2 className="text-2xl font-bold text-slate-900">Analysis Results</h2>
           <p className="text-sm text-slate-600 mt-1">
-            Showing {results.length} unique candidates
+            Showing {results.length} candidates
           </p>
         </div>
         <div className="flex items-center space-x-2">
-          <Button variant="outline" size="sm" className="text-slate-600 border-slate-300">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="text-slate-600 border-slate-300"
+          >
             <Download className="w-4 h-4 mr-2" />
             Export All
           </Button>
-          <Button variant="outline" size="sm" className="text-slate-600 border-slate-300">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="text-slate-600 border-slate-300"
+          >
             <Share2 className="w-4 h-4 mr-2" />
             Share Results
+          </Button>
+          <Button 
+            onClick={() => onSendBulkFeedback(results)}
+            className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
+          >
+            <MessageSquare className="w-4 h-4 mr-2" />
+            Send Bulk Feedback
           </Button>
         </div>
       </div>
       
       {results.map((candidate, index) => (
-        <CandidateCard key={candidate.resume_id} candidate={candidate} rank={index + 1} />
+        <CandidateCard 
+          key={candidate.resume_id} 
+          candidate={candidate} 
+          rank={index + 1} 
+          onSendFeedback={onSendFeedback}
+        />
       ))}
     </div>
   );
@@ -196,6 +253,12 @@ function AnalysePageContent() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [session, setSession] = useState<AnalysisSession | null>(null);
   const [error, setError] = useState<string | null>(null);
+  
+  // Feedback modal states
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [showBulkFeedbackModal, setShowBulkFeedbackModal] = useState(false);
+  const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
+  const [selectedCandidates, setSelectedCandidates] = useState<Candidate[]>([]);
 
   useEffect(() => {
     if (isLoaded && !isSignedIn) {
@@ -221,15 +284,17 @@ function AnalysePageContent() {
       
       setSession(data.session);
       
-      // Remove duplicates based on name and email
-      const uniqueResults = data.results.filter((candidate: Candidate, index: number, self: Candidate[]) => {
-        return index === self.findIndex((c: Candidate) => 
-          c.name === candidate.name && c.email === candidate.email
-        );
-      });
+      // Map backend response to frontend interface
+      const mappedResults = data.results.map((result: any) => ({
+        name: result.candidate_name,
+        email: result.candidate_email,
+        phone: result.candidate_phone,
+        resume_id: result.resume_id,
+        evaluation: result.evaluation
+      }));
       
-      console.log(`Removed ${data.results.length - uniqueResults.length} duplicate candidates`);
-      setAnalysisResults(uniqueResults);
+      // Show all results without filtering duplicates
+      setAnalysisResults(mappedResults);
       setIsAnalyzing(data.session.status === 'processing');
     } catch (error) {
       console.error('Error fetching analysis results:', error);
@@ -237,6 +302,21 @@ function AnalysePageContent() {
     } finally {
       setIsAnalyzing(false);
     }
+  };
+
+  const handleSendFeedback = (candidate: Candidate) => {
+    setSelectedCandidate(candidate);
+    setShowFeedbackModal(true);
+  };
+
+  const handleSendBulkFeedback = (candidates: Candidate[]) => {
+    setSelectedCandidates(candidates);
+    setShowBulkFeedbackModal(true);
+  };
+
+  const handleFeedbackSuccess = () => {
+    // Optionally refresh data or show success message
+    console.log('Feedback sent successfully');
   };
 
   if (!isLoaded) {
@@ -352,9 +432,38 @@ function AnalysePageContent() {
             results={analysisResults} 
             isLoading={isAnalyzing} 
             session={session || undefined}
+            onSendFeedback={handleSendFeedback}
+            onSendBulkFeedback={handleSendBulkFeedback}
           />
         </div>
       </main>
+
+      {/* Feedback Modals */}
+      {selectedCandidate && (
+        <FeedbackModal
+          isOpen={showFeedbackModal}
+          onClose={() => {
+            setShowFeedbackModal(false);
+            setSelectedCandidate(null);
+          }}
+          candidate={selectedCandidate}
+          sessionId={sessionId || ''}
+          clerkId={user?.id || ''}
+          onSuccess={handleFeedbackSuccess}
+        />
+      )}
+
+      <BulkFeedbackModal
+        isOpen={showBulkFeedbackModal}
+        onClose={() => {
+          setShowBulkFeedbackModal(false);
+          setSelectedCandidates([]);
+        }}
+        candidates={selectedCandidates}
+        sessionId={sessionId || ''}
+        clerkId={user?.id || ''}
+        onSuccess={handleFeedbackSuccess}
+      />
     </div>
   );
 }

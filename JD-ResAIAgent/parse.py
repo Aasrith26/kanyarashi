@@ -127,7 +127,8 @@ def read_file_content(file_bytes: bytes, filename: str) -> str:
 
 
 def extract_contact_info(text: str):
-    email = re.findall(r"[\w\.\-]+@[\w\.\-]+", text)
+    # More precise email regex that stops at word boundaries
+    email = re.findall(r"\b[\w\.\-]+@[\w\.\-]+\.[a-zA-Z]{2,}\b", text)
     phone = re.findall(r"\+?\d[\d\s\-]{8,13}\d", text)
     return email[0] if email else "", phone[0] if phone else ""
 

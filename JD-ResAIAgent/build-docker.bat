@@ -3,7 +3,7 @@ REM Docker build script for RecurAI Backend (Windows)
 REM This script builds and pushes the Docker image to Docker Hub
 
 REM Configuration
-set DOCKER_USERNAME=your_dockerhub_username
+set DOCKER_USERNAME=aasrith26
 set IMAGE_NAME=recur-ai-backend
 set TAG=latest
 
