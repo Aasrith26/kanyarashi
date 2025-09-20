@@ -13,8 +13,7 @@ import {
   AlertCircle,
   Upload,
   X,
-  Save,
-  Info
+  Save
 } from "lucide-react";
 import Link from "next/link";
 import axios from "axios";

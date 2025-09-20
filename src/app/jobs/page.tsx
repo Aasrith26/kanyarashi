@@ -52,16 +52,16 @@ export default function JobsPage() {
     );
   }
 
-  if (!isSignedIn) {
-    router.push('/');
-    return null;
-  }
-
   useEffect(() => {
     if (isSignedIn && user) {
       fetchJobs();
     }
   }, [isSignedIn, user]);
+
+  if (!isSignedIn) {
+    router.push('/');
+    return null;
+  }
 
   const fetchJobs = async () => {
     try {
@@ -112,7 +112,7 @@ export default function JobsPage() {
     }
   };
 
-  const handleUpdateJob = async (jobData: any) => {
+  const handleUpdateJob = async (jobData: { id: number; title: string; description: string; location?: string }) => {
     if (!selectedJob) return;
     
     try {

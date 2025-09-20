@@ -50,16 +50,16 @@ export default function AnalysesPage() {
     );
   }
 
-  if (!isSignedIn) {
-    router.push('/');
-    return null;
-  }
-
   useEffect(() => {
     if (isSignedIn && user) {
       fetchAnalyses();
     }
   }, [isSignedIn, user]);
+
+  if (!isSignedIn) {
+    router.push('/');
+    return null;
+  }
 
   const fetchAnalyses = async () => {
     try {
@@ -385,7 +385,7 @@ export default function AnalysesPage() {
               <h3 className="text-lg font-semibold text-gray-900">Delete Analysis Session</h3>
             </div>
             <p className="text-gray-600 mb-6">
-              Are you sure you want to delete <strong>"{selectedAnalysis.name}"</strong>? 
+              Are you sure you want to delete <strong>&quot;{selectedAnalysis.name}&quot;</strong>? 
               {selectedAnalysis.status === 'processing' ? (
                 <>
                   This will stop the analysis process and permanently remove all progress. 

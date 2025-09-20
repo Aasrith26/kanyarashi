@@ -5,10 +5,8 @@ import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { 
   Sparkles, 
-  Upload, 
   FileText, 
   Users, 
-  TrendingUp, 
   CheckCircle,
   AlertCircle,
   Clock,

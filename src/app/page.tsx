@@ -1,9 +1,7 @@
 "use client"
 import { Button } from "@/components/ui/button";
 import { SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
-import Link from "next/link";
 import { FileText, Users, CheckCircle, ArrowRight } from "lucide-react";
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 
