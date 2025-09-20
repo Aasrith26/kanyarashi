@@ -620,12 +620,19 @@ def read_root():
     return {"message": "RecurAI Backend API with S3 Integration", "version": "2.0.0"}
 
 @app.get("/health")
-def health_check():
-    conn = get_db_connection()
-    if conn:
-        conn.close()
-        return {"status": "healthy", "database": "connected", "s3": "configured"}
-    return {"status": "unhealthy", "database": "disconnected"}
+async def health_check():
+    """Health check endpoint for Docker and load balancers"""
+    try:
+        # Test database connection
+        conn = get_db_connection()
+        if conn:
+            conn.close()
+            return {"status": "healthy", "database": "connected", "timestamp": datetime.now().isoformat()}
+        else:
+            return {"status": "unhealthy", "database": "disconnected", "timestamp": datetime.now().isoformat()}
+    except Exception as e:
+        return {"status": "unhealthy", "error": str(e), "timestamp": datetime.now().isoformat()}
+
 
 # Job Posting endpoints
 @app.post("/job-postings/")
