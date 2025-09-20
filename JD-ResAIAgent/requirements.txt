@@ -1,42 +1,42 @@
 # Core FastAPI and web framework
-fastapi==0.115.6
-uvicorn[standard]==0.32.1
-python-multipart==0.0.20
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
+python-multipart>=0.0.20
 
 # Database
-psycopg2-binary==2.9.10
+psycopg2-binary>=2.9.0
 
 # AI/ML Libraries
 openai>=1.6.1,<2.0.0
-langchain==0.3.7
-langchain-openai==0.2.8
+langchain>=0.3.0
+langchain-openai>=0.2.0
 sentence-transformers>=2.6.0
-faiss-cpu==1.8.0
+faiss-cpu>=1.9.0
 numpy>=1.26.0
 pandas>=2.2.0
 scikit-learn>=1.4.0
 
 # File processing
-PyPDF2==3.0.1
-pypdf==5.0.1
-pdfplumber==0.11.7
-python-docx==1.1.2
+PyPDF2>=3.0.0
+pypdf>=5.0.0
+pdfplumber>=0.11.0
+python-docx>=1.1.0
 
 # AWS S3
-boto3==1.35.93
-aioboto3==15.1.0
+boto3>=1.35.0
+aioboto3>=15.0.0
 
 # HTTP and async
-httpx==0.28.1
-aiofiles==24.1.0
+httpx>=0.28.0
+aiofiles>=24.0.0
 
 # Environment and configuration
-python-dotenv==1.0.1
+python-dotenv>=1.0.0
 
 # Data processing
-pydantic==2.10.3
-python-dateutil==2.9.0
+pydantic>=2.10.0
+python-dateutil>=2.9.0
 
 # Utilities
-click==8.1.8
-tqdm==4.67.1
+click>=8.1.0
+tqdm>=4.67.0
