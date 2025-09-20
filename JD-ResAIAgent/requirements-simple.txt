@@ -1,0 +1,43 @@
+# Core FastAPI and web framework
+fastapi
+uvicorn[standard]
+python-multipart
+python-dotenv
+pydantic
+
+# Database
+sqlalchemy
+psycopg2-binary
+
+# AI/ML Libraries
+langchain
+langchain-community
+langchain-openai
+langchain-huggingface
+sentence-transformers
+faiss-cpu
+openai
+
+# Document Processing
+pdfplumber
+python-docx
+PyMuPDF
+
+# AWS and Cloud Storage
+boto3
+aioboto3
+
+# HTTP and API
+httpx
+requests
+
+# Data Processing
+pandas
+numpy
+
+# Utilities
+python-dateutil
+pytz
+
+# CORS and Middleware
+starlette
