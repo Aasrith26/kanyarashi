@@ -124,7 +124,8 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+# Python lib directory (but allow src/lib for Next.js)
+/lib/
 lib64/
 parts/
 sdist/
@@ -360,6 +361,7 @@ JD-ResAIAgent/*.pyc
 JD-ResAIAgent/.env
 JD-ResAIAgent/venv/
 JD-ResAIAgent/.venv/
+JD-ResAIAgent/resAI/
 JD-ResAIAgent/logs/
 JD-ResAIAgent/temp/
 JD-ResAIAgent/uploads/
