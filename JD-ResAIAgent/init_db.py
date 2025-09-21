@@ -41,6 +41,109 @@ def get_db_connection(max_retries=5, delay=2):
                 logger.error(f"Database connection failed after {max_retries} attempts")
     return None
 
+def fix_database_schema():
+    """Fix database schema issues (triggers, columns)"""
+    conn = get_db_connection()
+    if not conn:
+        return False
+    
+    try:
+        conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+        cur = conn.cursor()
+        
+        logger.info("🔧 Checking and fixing database schema...")
+        
+        # Check if updated_at column exists in resumes table
+        cur.execute("""
+            SELECT column_name 
+            FROM information_schema.columns 
+            WHERE table_name = 'resumes' AND column_name = 'updated_at'
+        """)
+        
+        if not cur.fetchone():
+            logger.info("➕ Adding updated_at column to resumes table...")
+            cur.execute("""
+                ALTER TABLE resumes 
+                ADD COLUMN updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            """)
+            logger.info("✅ Added updated_at column to resumes table")
+        else:
+            logger.info("✅ updated_at column already exists in resumes table")
+
+        # Check if updated_at column exists in analysis_sessions table
+        cur.execute("""
+            SELECT column_name 
+            FROM information_schema.columns 
+            WHERE table_name = 'analysis_sessions' AND column_name = 'updated_at'
+        """)
+        
+        if not cur.fetchone():
+            logger.info("➕ Adding updated_at column to analysis_sessions table...")
+            cur.execute("""
+                ALTER TABLE analysis_sessions 
+                ADD COLUMN updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            """)
+            logger.info("✅ Added updated_at column to analysis_sessions table")
+        else:
+            logger.info("✅ updated_at column already exists in analysis_sessions table")
+
+        # Create or replace the trigger function
+        logger.info("🔧 Creating/replacing trigger function...")
+        cur.execute("""
+            CREATE OR REPLACE FUNCTION update_updated_at_column()
+            RETURNS TRIGGER AS $$
+            BEGIN
+                NEW.updated_at = CURRENT_TIMESTAMP;
+                RETURN NEW;
+            END;
+            $$ LANGUAGE plpgsql;
+        """)
+        logger.info("✅ Trigger function created/replaced")
+
+        # Drop existing triggers if they exist
+        logger.info("🗑️ Dropping existing triggers...")
+        cur.execute("DROP TRIGGER IF EXISTS update_resumes_updated_at ON resumes")
+        cur.execute("DROP TRIGGER IF EXISTS update_analysis_sessions_updated_at ON analysis_sessions")
+        cur.execute("DROP TRIGGER IF EXISTS update_users_updated_at ON users")
+        cur.execute("DROP TRIGGER IF EXISTS update_job_postings_updated_at ON job_postings")
+
+        # Create triggers
+        logger.info("🔧 Creating triggers...")
+        cur.execute("""
+            CREATE TRIGGER update_users_updated_at 
+            BEFORE UPDATE ON users 
+            FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
+        """)
+        
+        cur.execute("""
+            CREATE TRIGGER update_job_postings_updated_at 
+            BEFORE UPDATE ON job_postings 
+            FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
+        """)
+        
+        cur.execute("""
+            CREATE TRIGGER update_resumes_updated_at 
+            BEFORE UPDATE ON resumes 
+            FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
+        """)
+        
+        cur.execute("""
+            CREATE TRIGGER update_analysis_sessions_updated_at 
+            BEFORE UPDATE ON analysis_sessions 
+            FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
+        """)
+        
+        logger.info("✅ All triggers created successfully")
+        return True
+        
+    except Exception as e:
+        logger.error(f"❌ Error fixing database schema: {e}")
+        return False
+    finally:
+        if conn:
+            cur.close()
+            conn.close()
+
 def init_database():
     """Initialize database with schema"""
     conn = get_db_connection()
@@ -77,6 +180,13 @@ def init_database():
         
         tables = cur.fetchall()
         logger.info(f"📋 Created tables: {[table[0] for table in tables]}")
+        
+        # Fix any schema issues after initial creation
+        logger.info("🔧 Applying schema fixes...")
+        if fix_database_schema():
+            logger.info("✅ Database schema fixes applied successfully!")
+        else:
+            logger.warning("⚠️ Some schema fixes may have failed, but continuing...")
         
         return True
         
