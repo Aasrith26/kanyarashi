@@ -2184,11 +2184,13 @@ async def generate_feedback_preview(resume_id: str, clerk_id: str):
             SELECT r.candidate_name, r.candidate_email, r.s3_resume_key,
                    ra.overall_fit_score, ra.skill_match_score, ra.project_relevance_score,
                    ra.problem_solving_score, ra.tools_score, ra.summary,
-                   jp.title, jp.description, analysis_sessions.id as session_id
+                   COALESCE(jp.title, 'General Analysis') as job_title, 
+                   COALESCE(jp.description, 'General resume analysis') as job_description, 
+                   analysis_sessions.id as session_id
             FROM resumes r
             JOIN resume_analyses ra ON r.id = ra.resume_id
             JOIN analysis_sessions ON ra.analysis_session_id = analysis_sessions.id
-            JOIN job_postings jp ON analysis_sessions.job_posting_id = jp.id
+            LEFT JOIN job_postings jp ON analysis_sessions.job_posting_id = jp.id
             JOIN users u ON analysis_sessions.user_id = u.id
             WHERE r.id = %s AND u.clerk_id = %s
         """, (resume_id, clerk_id))
@@ -2263,11 +2265,13 @@ async def send_feedback_email(resume_id: str, request: SendFeedbackRequest, cler
             SELECT r.candidate_name, r.candidate_email, r.s3_resume_key,
                    ra.overall_fit_score, ra.skill_match_score, ra.project_relevance_score,
                    ra.problem_solving_score, ra.tools_score, ra.summary,
-                   jp.title, jp.description, analysis_sessions.id as session_id, u.id as user_id
+                   COALESCE(jp.title, 'General Analysis') as job_title, 
+                   COALESCE(jp.description, 'General resume analysis') as job_description, 
+                   analysis_sessions.id as session_id, u.id as user_id
             FROM resumes r
             JOIN resume_analyses ra ON r.id = ra.resume_id
             JOIN analysis_sessions ON ra.analysis_session_id = analysis_sessions.id
-            JOIN job_postings jp ON analysis_sessions.job_posting_id = jp.id
+            LEFT JOIN job_postings jp ON analysis_sessions.job_posting_id = jp.id
             JOIN users u ON analysis_sessions.user_id = u.id
             WHERE r.id = %s AND u.clerk_id = %s
         """, (resume_id, clerk_id))
@@ -2376,11 +2380,13 @@ async def send_bulk_feedback(request: BulkFeedbackRequest, clerk_id: str):
                     SELECT r.candidate_name, r.candidate_email, r.s3_resume_key,
                            ra.overall_fit_score, ra.skill_match_score, ra.project_relevance_score,
                            ra.problem_solving_score, ra.tools_score, ra.summary,
-                           jp.title, jp.description, analysis_sessions.id as session_id, u.id as user_id
+                           COALESCE(jp.title, 'General Analysis') as job_title, 
+                           COALESCE(jp.description, 'General resume analysis') as job_description, 
+                           analysis_sessions.id as session_id, u.id as user_id
                     FROM resumes r
                     JOIN resume_analyses ra ON r.id = ra.resume_id
                     JOIN analysis_sessions ON ra.analysis_session_id = analysis_sessions.id
-                    JOIN job_postings jp ON analysis_sessions.job_posting_id = jp.id
+                    LEFT JOIN job_postings jp ON analysis_sessions.job_posting_id = jp.id
                     JOIN users u ON analysis_sessions.user_id = u.id
                     WHERE r.id = %s AND u.clerk_id = %s
                 """, (resume_id, clerk_id))

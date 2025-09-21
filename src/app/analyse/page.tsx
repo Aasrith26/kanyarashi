@@ -288,25 +288,20 @@ function AnalysePageContent() {
         candidate_email: string;
         candidate_phone: string;
         resume_id: string;
-        overall_fit_score: number;
-        skill_match_score: number;
-        project_relevance_score: number;
-        problem_solving_score: number;
-        tools_score: number;
-        summary: string;
+        evaluation: {
+          "Overall Fit": number;
+          "Skill Match": number;
+          "Project Relevance": number;
+          "Problem Solving": number;
+          "Tools": number;
+          "Summary": string;
+        };
       }) => ({
         name: result.candidate_name,
         email: result.candidate_email,
         phone: result.candidate_phone,
         resume_id: result.resume_id,
-        evaluation: {
-          "Overall Fit": result.overall_fit_score,
-          "Skill Match": result.skill_match_score,
-          "Project Relevance": result.project_relevance_score,
-          "Problem Solving": result.problem_solving_score,
-          "Tools": result.tools_score,
-          "Summary": result.summary
-        }
+        evaluation: result.evaluation
       }));
       
       // Show all results without filtering duplicates
