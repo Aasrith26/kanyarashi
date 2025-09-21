@@ -424,6 +424,7 @@ app.add_middleware(
         "http://localhost:3000", 
         "http://127.0.0.1:3000",
         "https://kanyarashi.vercel.app",  # Main Vercel deployment
+        "https://kanyarashi-two.vercel.app",  # Your actual Vercel URL
         "https://kanyarashi-git-main-aasrith26.vercel.app",  # Vercel deployment URL
         "https://*.vercel.app"  # Allow all Vercel preview deployments
     ],
