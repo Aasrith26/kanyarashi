@@ -2205,7 +2205,12 @@ async def generate_feedback_preview(resume_id: str, clerk_id: str):
         
         # Get resume content from S3
         try:
-            async with aioboto3.Session().client('s3') as s3_client:
+            async with aioboto3.Session().client(
+                's3',
+                aws_access_key_id=AWS_ACCESS_KEY,
+                aws_secret_access_key=AWS_SECRET_KEY,
+                region_name=AWS_REGION
+            ) as s3_client:
                 response = await s3_client.get_object(Bucket=S3_BUCKET, Key=s3_key)
                 resume_content = await response['Body'].read()
                 
@@ -2291,7 +2296,12 @@ async def send_feedback_email(resume_id: str, request: SendFeedbackRequest, cler
         else:
             # Get resume content from S3
             try:
-                async with aioboto3.Session().client('s3') as s3_client:
+                async with aioboto3.Session().client(
+                    's3',
+                    aws_access_key_id=AWS_ACCESS_KEY,
+                    aws_secret_access_key=AWS_SECRET_KEY,
+                    region_name=AWS_REGION
+                ) as s3_client:
                     response = await s3_client.get_object(Bucket=S3_BUCKET, Key=s3_key)
                     resume_content = await response['Body'].read()
                     
@@ -2406,7 +2416,12 @@ async def send_bulk_feedback(request: BulkFeedbackRequest, clerk_id: str):
                 
                 # Generate feedback
                 try:
-                    async with aioboto3.Session().client('s3') as s3_client:
+                    async with aioboto3.Session().client(
+                        's3',
+                        aws_access_key_id=AWS_ACCESS_KEY,
+                        aws_secret_access_key=AWS_SECRET_KEY,
+                        region_name=AWS_REGION
+                    ) as s3_client:
                         response = await s3_client.get_object(Bucket=S3_BUCKET, Key=s3_key)
                         resume_content = await response['Body'].read()
                         

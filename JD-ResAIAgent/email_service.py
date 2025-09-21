@@ -317,6 +317,13 @@ def get_email_service() -> EmailService:
     global _email_service
     
     if _email_service is None:
+        # Debug email configuration
+        print(f"[EMAIL_DEBUG] EMAIL_PROVIDER: {os.getenv('EMAIL_PROVIDER', 'gmail')}")
+        print(f"[EMAIL_DEBUG] SMTP_SERVER: {os.getenv('SMTP_SERVER')}")
+        print(f"[EMAIL_DEBUG] SMTP_PORT: {os.getenv('SMTP_PORT', '587')}")
+        print(f"[EMAIL_DEBUG] SMTP_USERNAME: {os.getenv('SMTP_USERNAME')}")
+        print(f"[EMAIL_DEBUG] SMTP_PASSWORD: {'***' if os.getenv('SMTP_PASSWORD') else 'None'}")
+        
         config = EmailConfig(
             provider=os.getenv("EMAIL_PROVIDER", "gmail"),
             smtp_server=os.getenv("SMTP_SERVER"),
