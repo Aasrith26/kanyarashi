@@ -423,7 +423,8 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000", 
         "http://127.0.0.1:3000",
-        "https://kanyarashi.vercel.app",  # Add your Vercel frontend URL
+        "https://kanyarashi.vercel.app",  # Main Vercel deployment
+        "https://kanyarashi-git-main-aasrith26.vercel.app",  # Vercel deployment URL
         "https://*.vercel.app"  # Allow all Vercel preview deployments
     ],
     allow_credentials=True,

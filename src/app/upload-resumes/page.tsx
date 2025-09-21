@@ -148,11 +148,17 @@ export default function UploadResumesPage() {
     setSelectedResumes(prev => [...prev, newResume]);
 
     try {
-      await axios.post(api.resumes.upload(), formData, {
+      console.log('Uploading resume:', file.name);
+      console.log('Upload URL:', api.resumes.upload());
+      console.log('Form data keys:', Array.from(formData.keys()));
+      
+      const response = await axios.post(api.resumes.upload(), formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
+
+      console.log('Upload response:', response.data);
 
       setSelectedResumes(prev => 
         prev.map(r => 
@@ -164,8 +170,14 @@ export default function UploadResumesPage() {
 
       // Refresh S3 resumes after successful upload
       await fetchS3Resumes();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error uploading file:', error);
+      console.error('Upload error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        url: error.config?.url
+      });
       setSelectedResumes(prev => 
         prev.map(r => 
           r.filename === file.name 

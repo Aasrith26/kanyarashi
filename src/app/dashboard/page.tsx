@@ -83,25 +83,62 @@ export default function Dashboard() {
     }
   }, [isSignedIn, user]);
 
+  const testApiConnectivity = async () => {
+    try {
+      console.log('Testing API connectivity...');
+      const healthResponse = await axios.get(api.health());
+      console.log('Health check response:', healthResponse.data);
+      return true;
+    } catch (error: any) {
+      console.error('API connectivity test failed:', error);
+      return false;
+    }
+  };
+
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
       setError(null);
       
       const clerkId = user?.id;
-      if (!clerkId) return;
+      if (!clerkId) {
+        console.log('No clerk ID available');
+        return;
+      }
+
+      // Test API connectivity first
+      const isApiConnected = await testApiConnectivity();
+      if (!isApiConnected) {
+        setError('Cannot connect to backend API. Please check your connection.');
+        return;
+      }
+
+      console.log('Fetching dashboard data for clerk ID:', clerkId);
+      console.log('API Base URL:', api.baseURL);
 
       // Fetch job postings
-      const jobsResponse = await axios.get(api.jobPostings.list(clerkId));
+      const jobsUrl = api.jobPostings.list(clerkId);
+      console.log('Jobs URL:', jobsUrl);
+      const jobsResponse = await axios.get(jobsUrl);
+      console.log('Jobs response:', jobsResponse.data);
       setJobPostings(jobsResponse.data);
 
       // Fetch analysis sessions
-      const analysesResponse = await axios.get(api.analysisSessions.list(clerkId));
+      const analysesUrl = api.analysisSessions.list(clerkId);
+      console.log('Analyses URL:', analysesUrl);
+      const analysesResponse = await axios.get(analysesUrl);
+      console.log('Analyses response:', analysesResponse.data);
       setAnalysisSessions(analysesResponse.data);
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching dashboard data:', error);
-      setError('Failed to load dashboard data');
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        url: error.config?.url
+      });
+      setError(`Failed to load dashboard data: ${error.response?.data?.detail || error.message}`);
     } finally {
       setLoading(false);
     }
