@@ -4,7 +4,7 @@
 
 A comprehensive AI-powered resume analysis platform that helps recruiters and HR professionals efficiently evaluate candidate resumes against job descriptions. Built with Next.js, FastAPI, and advanced AI technologies.
 
-## 🚀 Features
+##  Features
 
 ### Core Functionality
 - **Intelligent Resume Analysis**: AI-powered evaluation of resumes against job descriptions
@@ -28,7 +28,7 @@ A comprehensive AI-powered resume analysis platform that helps recruiters and HR
 - **API Integration**: RESTful API with comprehensive endpoints
 - **Scalable Architecture**: Built for enterprise-level usage
 
-## 🏗️ Architecture
+##  Architecture
 
 ### Frontend (Next.js)
 - **Framework**: Next.js 14 with App Router
@@ -150,7 +150,7 @@ AWS_S3_BUCKET=your_s3_bucket_name
 DATABASE_URL=postgresql://user:password@localhost:5432/recur_ai_db
 ```
 
-## 🚀 Deployment
+##  Deployment
 
 ### Vercel Deployment (Frontend)
 1. Connect your GitHub repository to Vercel
@@ -190,7 +190,7 @@ Set these in your deployment platform:
 4. **Team Collaboration**: Share analysis results with team members
 5. **Historical Tracking**: Maintain analysis history and trends
 
-## 🔌 API Documentation
+##  API Documentation
 
 ### Core Endpoints
 
@@ -217,7 +217,7 @@ Set these in your deployment platform:
 ### Authentication
 All endpoints require Clerk authentication. Include the user's Clerk ID in requests.
 
-## 🧪 Testing
+##  Testing
 
 ### Frontend Testing
 ```bash
@@ -255,7 +255,7 @@ python -m pytest --cov=main_backend_s3 tests/
 - **File Storage**: Scalable AWS S3 integration
 - **API Rate Limiting**: Built-in rate limiting and throttling
 
-## 🔒 Security
+##  Security
 
 ### Data Protection
 - **Encryption**: All data encrypted in transit and at rest
@@ -270,7 +270,7 @@ python -m pytest --cov=main_backend_s3 tests/
 - **User Consent**: Clear consent mechanisms
 - **Data Portability**: Export user data capabilities
 
-## 🤝 Contributing
+##  Contributing
 
 We welcome contributions! Please follow these steps:
 
@@ -291,7 +291,7 @@ We welcome contributions! Please follow these steps:
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+##  Acknowledgments
 
 - **OpenRouter** for AI model access
 - **Clerk** for authentication services
@@ -300,32 +300,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **HuggingFace** for embedding models
 - **LangChain** for AI framework
 
-## 📞 Support
 
-For support and questions:
-- **Email**: support@recur-ai.com
-- **Documentation**: [docs.recur-ai.com](https://docs.recur-ai.com)
-- **Issues**: [GitHub Issues](https://github.com/Aasrith26/kanyarashi/issues)
 
-## 🗺️ Roadmap
-
-### Upcoming Features
-- [ ] Advanced filtering and search
-- [ ] Team collaboration features
-- [ ] Custom scoring templates
-- [ ] Integration with ATS systems
-- [ ] Mobile application
-- [ ] Advanced analytics dashboard
-- [ ] Multi-language support
-- [ ] API webhooks
-
-### Version History
-- **v1.0.0** - Initial release with core functionality
-- **v1.1.0** - Enhanced UI/UX and performance improvements
-- **v1.2.0** - Advanced analysis features and export capabilities
-
----
-
-**Built with ❤️ by the RecurAI Team**
-
-*Transforming recruitment through intelligent resume analysis*
